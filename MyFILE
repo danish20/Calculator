@@ -1,0 +1,90 @@
+var numArray=[Int]()
+var deciArray=[Int]()
+var deciAdded=false
+func format(str:String)->String
+{
+    let length=str.characters.count
+    switch(length)
+    {
+    case 4:
+        str.insert(char, atIndex: (string.startIndex.advancedBy(1)))
+    case 6:
+        str.insert(char, atIndex: (string.startIndex.advancedBy(2)))
+    case 7:
+        str.insert(char, atIndex: (string.startIndex.advancedBy(3)))
+    case 8:
+        str.insert(char, atIndex: (string.startIndex.advancedBy(1)))
+        str.insert(char, atIndex: (string.startIndex.advancedBy(5)))
+    case 10:
+        str.insert(char, atIndex: (string.startIndex.advancedBy(2)))
+        str.insert(char, atIndex: (string.startIndex.advancedBy(6)))
+    case 11:
+        str.insert(char, atIndex: (string.startIndex.advancedBy(3)))
+        str.insert(char, atIndex: (string.startIndex.advancedBy(7)))
+        
+        
+    }
+    return str;
+}
+
+func getNumber()->String
+{
+    var number:String
+    var decimal:String
+    for num in numArray
+    {
+        number=number+String(num)
+    }
+    number=format(number)
+    if(deciAdded)
+    {
+    for deci in deciArray
+    {
+        decimal=decimal+String(deci)
+    }
+    }
+    if(decimal.characters.count>3)
+    {
+        decimal.substringToIndex(decimal.startIndex.advancedBy(3))
+    }
+    if((decimal.characters.count+number.characters.count)>11)
+    {
+        number=number.stringByReplacingOccurrencesOfString(",", withString: "")
+        number.substringToIndex(number.startIndex.advancedBy(6))
+        number=format(number)
+    }
+    return number+"."+decimal
+}
+
+func backSpace()
+{
+    var num:String
+    num=displayScreen.text
+    num.substringToIndex(num.endIndex.advancedBy(-1))
+    if(num.rangeOfString(".") != nil)
+    {
+        var num1=num.substringToIndex(".".startIndex)
+        var num2=num.substringToIndex(".".endIndex)
+        num1=format(num1)
+        num=num1+"."+num2
+    }
+    displayScreen.text=num
+}
+
+func digitTapped()
+{
+
+let digit=sender.currentTitle
+
+if(!deciAdded)
+{
+    numArray.append(Int(digit))
+}
+else
+{
+    deciArray.append(Int(digit))
+}
+displayScreen.text=getNumber()
+
+}
+
