@@ -28,6 +28,8 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var displayScreen: UILabel!
     
+    var NoDecimalYet = true
+    var disableTapping = true
     var disableFactorial = true
     var disableEquals = true
     var userTyping = false
@@ -43,7 +45,77 @@ class ViewController: UIViewController {
         Rand.hidden = true
         yRootX.hidden = true
         oneByX.hidden = true
-     
+    }
+    
+    
+    func limitLabelLength() {
+        if self.displayScreen.text?.characters.count > 11 {
+            let index = displayScreen.text?.startIndex.advancedBy(11)
+            self.displayScreen.text = self.displayScreen.text?.substringToIndex(index!)
+        }
+    }
+    
+    func formatLabel() {
+        var string = displayScreen.text!
+        let length = string.characters.count
+        let char = "," as Character
+        if length == 4 {
+            string.insert(char, atIndex: (string.startIndex.advancedBy(1)))
+        } else if length == 6 {
+            string.removeAtIndex(string.startIndex.advancedBy(1))
+            string.insert(char, atIndex: (string.startIndex.advancedBy(2)))
+        } else if length == 7 {
+            string.removeAtIndex(string.startIndex.advancedBy(2))
+            string.insert(char, atIndex: (string.startIndex.advancedBy(3)))
+        } else if length == 8 {
+            string.removeAtIndex(string.startIndex.advancedBy(3))
+            string.insert(char, atIndex: (string.startIndex.advancedBy(1)))
+            string.insert(char, atIndex: (string.startIndex.advancedBy(5)))
+        } else if length == 10 {
+            string.removeAtIndex(string.startIndex.advancedBy(1))
+            string.insert(char, atIndex: (string.startIndex.advancedBy(2)))
+            string.removeAtIndex(string.startIndex.advancedBy(5))
+            string.insert(char, atIndex: (string.startIndex.advancedBy(6)))
+        } else if length == 11 {
+            string.removeAtIndex(string.startIndex.advancedBy(2))
+            string.insert(char, atIndex: (string.startIndex.advancedBy(3)))
+            string.removeAtIndex(string.startIndex.advancedBy(6))
+            string.insert(char, atIndex: (string.startIndex.advancedBy(7)))
+            disableTapping = false
+        }
+        displayScreen.text = string
+    }
+    
+    func Numberfirst() {
+        let number = displayScreen.text!
+        let number1 = number.stringByReplacingOccurrencesOfString(",", withString: "")
+        firstNumber = Double(number1)!
+    }
+    
+    func Numbersecond() {
+        let number = displayScreen.text!
+        let number2 = number.stringByReplacingOccurrencesOfString(",", withString: "")
+        secondNumber = Double(number2)!
+    }
+    
+    func resultFormatting() {
+        displayScreen.text = "\(result)"
+        let substr = displayScreen.text?.substringFromIndex(displayScreen.text!.endIndex.advancedBy(-2))
+        if substr == ".0" {
+            displayScreen.text = displayScreen.text?.substringToIndex(displayScreen.text!.endIndex.advancedBy(-2))
+        }
+    
+        
+//        if let idx = displayScreen.text?.characters.indexOf(".")  {
+//            displayScreen.text = displayScreen.text?.substringToIndex(displayScreen.text!.startIndex.advancedBy(11))
+            //let pos = displayScreen.text?.startIndex.distanceTo(idx)
+            
+        //}
+        
+      //  if pos == 1 || pos == 2 || pos ==3 {
+            
+        //}
+      
     }
     
     @IBAction func moreOperations(sender: UIBarButtonItem) {
@@ -73,16 +145,23 @@ class ViewController: UIViewController {
             Pi.hidden = false
         }
     }
+    
     @IBAction func digitTapped(sender: UIButton) {
+        if disableTapping == true {
         let digit = sender.currentTitle
         if userTyping == true {
             displayScreen.text = displayScreen.text! + digit!
+            limitLabelLength()
+            if NoDecimalYet == true {
+            formatLabel()
+            }
         } else {
             displayScreen.text = digit
         }
         userTyping = true
         disableEquals = false
         disableFactorial = false
+        }
     }
    
     @IBAction func pointTapped(sender: UIButton) {
@@ -95,14 +174,16 @@ class ViewController: UIViewController {
             userTyping = true
             displayScreen.text = "0" + pointSymbol
         }
-
+         NoDecimalYet = false
     }
+    
     @IBAction func Operation(sender: UIButton) {
         userTyping = false
-        let number1 = displayScreen.text!
-        firstNumber = Double(number1)!
+        disableTapping = true
+        Numberfirst()
         operation = sender.currentTitle!
         disableEquals = true
+        NoDecimalYet = true
     }
   
     @IBAction func equals(sender: UIButton) {
@@ -110,14 +191,13 @@ class ViewController: UIViewController {
         
         if operation == "" {
             if userTyping == false {
-            displayScreen.text = "0.0"
+            displayScreen.text = "0"
             } else {
                 let number = displayScreen.text!
                 displayScreen.text = number
             }
         } else {
-            let number2 = displayScreen.text!
-            secondNumber = Double(number2)!
+            Numbersecond()
             if operation == "+" {
                 result = firstNumber + secondNumber
             } else if operation == "-" {
@@ -133,47 +213,88 @@ class ViewController: UIViewController {
             } else {
                 result = pow(firstNumber, secondNumber)
             }
-            displayScreen.text = "\(result)"
+           // displayScreen.text = "\(result)"
+            resultFormatting()
         }
-        userTyping = true
+        userTyping = false
         disableEquals = true
         disableFactorial = false
+        disableTapping = true
         }
     }
     
     @IBAction func clear(sender: UIButton) {
         firstNumber = 0
         secondNumber = 0
-        displayScreen.text = "0.0"
+        displayScreen.text = "0"
         userTyping = false
+        NoDecimalYet = true
     }
     
     @IBAction func backSpace(sender: UIButton) {
-        
-        let truncated = String(displayScreen.text!.characters.dropLast())
+         if displayScreen.text?.rangeOfString(".") != nil {
+            NoDecimalYet = false
+         } else {
+            NoDecimalYet = true
+        }
+        var truncated = String(displayScreen.text!.characters.dropLast())
+        let length = truncated.characters.count
+        let char = "," as Character
+       
+        if NoDecimalYet == true {
+        if length == 4 {
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(1))
+        } else if length == 5 {
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(2))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(1))
+        } else if length == 6 {
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(3))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(2))
+        } else if length == 8 {
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(1))
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(4))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(3))
+        } else if length == 9 {
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(2))
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(5))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(1))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(5))
+        } else if length == 9 {
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(3))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(2))
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(5))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(5))
+        } else if length == 10 {
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(3))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(2))
+            truncated.insert(char, atIndex: truncated.startIndex.advancedBy(6))
+            truncated.removeAtIndex(truncated.startIndex.advancedBy(8))
+            }
+        }
         displayScreen.text = truncated
         userTyping = true
+        disableTapping = true
     }
     
     @IBAction func eRaisetoA(sender: UIButton) {
-        let number = displayScreen.text!
-        firstNumber = Double(number)!
+        Numberfirst()
         result = pow(2.71828, firstNumber)
         displayScreen.text = "\(result)"
         disableEquals = true
+        userTyping = false
+        NoDecimalYet = true
     }
     @IBAction func squareRoot(sender: UIButton) {
-        let number = displayScreen.text!
-        firstNumber = Double(number)!
+        Numberfirst()
         result = sqrt(firstNumber)
         displayScreen.text = "\(result)"
         disableEquals = true
-        
+        userTyping = false
+        NoDecimalYet = true
     }
     
     @IBAction func pi(sender: UIButton) {
-        let number = displayScreen.text!
-        firstNumber = Double(number)!
+       Numberfirst()
         if userTyping == false {
             displayScreen.text = "\(pi)"
         } else {
@@ -181,16 +302,17 @@ class ViewController: UIViewController {
             displayScreen.text = "\(result)"
         }
         disableEquals = true
+        userTyping = false
     }
    
     
     @IBAction func Factorial(sender: UIButton) {
         if disableFactorial == false {
-            let number = displayScreen.text!
-            firstNumber = Double(number)!
+            Numberfirst()
             result = factorial(firstNumber)
             displayScreen.text = "\(result)"
             disableEquals = true
+            userTyping = false
         }
     }
     
@@ -204,29 +326,34 @@ class ViewController: UIViewController {
     }
     
     @IBAction func Log10(sender: UIButton) {
-        let number = displayScreen.text!
-        firstNumber = Double(number)!
+        Numberfirst()
         result = log10(firstNumber)
         displayScreen.text = "\(result)"
         disableEquals = true
+        userTyping = false
+        NoDecimalYet = true
     }
     @IBAction func Ln(sender: UIButton) {
-        let number = displayScreen.text!
-        firstNumber = Double(number)!
+        Numberfirst()
         result = log(firstNumber)
         displayScreen.text = "\(result)"
         disableEquals = true
+        userTyping = false
+        NoDecimalYet = true
     }
     @IBAction func random(sender: UIButton) {
         let number = drand48()
         displayScreen.text = "\(number)"
+        userTyping = false
+        NoDecimalYet = true
     }
     @IBAction func oneByX(sender: UIButton) {
-        let number = displayScreen.text!
-        firstNumber = Double(number)!
+        Numberfirst()
         result = 1/firstNumber
         displayScreen.text = "\(result)"
         disableEquals = true
+        userTyping = false
+        NoDecimalYet = true
     }
 }
 
